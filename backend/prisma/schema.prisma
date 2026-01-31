@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  users     User[]
+  jobs      Job[]
+
+  @@map("companies")
+}
+
+model User {
+  id           String               @id @default(uuid())
+  companyId    String
+  name         String
+  email        String               @unique
+  passwordHash String
+  role         Role                 @default(HR)
+  createdAt    DateTime             @default(now())
+  company      Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jobs         Job[]
+  recordings   InterviewRecording[]
+
+  @@index([companyId])
+  @@index([email])
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  HR
+}
+
+model Job {
+  id          String      @id @default(uuid())
+  companyId   String
+  hrId        String
+  title       String
+  description String      @db.Text
+  status      JobStatus   @default(ACTIVE)
+  formUrl     String      @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  hr          User        @relation(fields: [hrId], references: [id])
+  questions   Question[]
+  candidates  Candidate[]
+
+  @@index([companyId])
+  @@index([hrId])
+  @@index([status])
+  @@index([formUrl])
+  @@map("jobs")
+}
+
+enum JobStatus {
+  ACTIVE
+  PAUSED
+  CLOSED
+}
+
+model Question {
+  id           String       @id @default(uuid())
+  jobId        String
+  questionText String       @db.Text
+  questionType QuestionType
+  isRequired   Boolean      @default(false)
+  orderIndex   Int
+  job          Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  answers      Answer[]
+
+  @@index([jobId])
+  @@map("questions")
+}
+
+enum QuestionType {
+  TEXT
+  RADIO
+  CHECKBOX
+  FILE
+}
+
+model Candidate {
+  id               String               @id @default(uuid())
+  jobId            String
+  name             String
+  email            String
+  phone            String
+  cvUrl            String
+  status           CandidateStatus      @default(PENDING)
+  rejectionReason  String?              @db.Text
+  aiMatchScore     Decimal?             @db.Decimal(5, 2)
+  aiAnalysis       Json?
+  appliedAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  job              Job                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  answers          Answer[]
+  interviewHistory InterviewHistory[]
+  recordings       InterviewRecording[]
+
+  @@index([jobId])
+  @@index([email])
+  @@index([status])
+  @@index([jobId, status])
+  @@map("candidates")
+}
+
+enum CandidateStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Answer {
+  id          String    @id @default(uuid())
+  candidateId String
+  questionId  String
+  answerText  String    @db.Text
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@index([questionId])
+  @@map("answers")
+}
+
+model InterviewHistory {
+  id              String    @id @default(uuid())
+  candidateId     String
+  companyName     String
+  position        String
+  outcome         Outcome
+  rejectionReason String?   @db.Text
+  interviewDate   DateTime
+  notes           String?   @db.Text
+  candidate       Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@map("interview_history")
+}
+
+enum Outcome {
+  SELECTED
+  REJECTED
+}
+
+model InterviewRecording {
+  id                  String    @id @default(uuid())
+  candidateId         String
+  audioUrl            String
+  transcript          String?   @db.Text
+  aiGeneratedResponse String?   @db.Text
+  recordedBy          String
+  createdAt           DateTime  @default(now())
+  candidate           Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  recorder            User      @relation(fields: [recordedBy], references: [id])
+
+  @@index([candidateId])
+  @@index([recordedBy])
+  @@map("interview_recordings")
+}
