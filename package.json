@@ -1,0 +1,44 @@
+{
+  "name": "ats-backend",
+  "version": "1.0.0",
+  "description": "ATS Backend API with AI Integration",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "prisma generate",
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "prisma:deploy": "prisma migrate deploy"
+  },
+  "keywords": [
+    "ats",
+    "applicant-tracking",
+    "ai",
+    "recruitment"
+  ],
+  "dependencies": {
+    "@prisma/client": "^5.7.1",
+    "bcrypt": "^5.1.1",
+    "cloudinary": "^1.41.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "nanoid": "^5.0.4",
+    "openai": "^4.24.1",
+    "pdf-parse": "^1.1.1",
+    "prisma": "^5.7.1",
+    "resend": "^3.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
