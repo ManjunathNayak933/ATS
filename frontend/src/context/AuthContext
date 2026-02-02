@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is already logged in
+    console.log('API URL:', import.meta.env.VITE_API_URL);
     checkAuth();
   }, []);
 
@@ -19,8 +20,15 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (!apiUrl) {
+      console.error('VITE_API_URL is not defined');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+      const response = await fetch(`${apiUrl}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -30,7 +38,6 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         setUser(data.user);
       } else {
-        // Token is invalid
         localStorage.removeItem('token');
         setUser(null);
       }
